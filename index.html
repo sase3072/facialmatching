@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>포트레이트 표정 조합기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+    :root {
+        --accent: #ffffff;
+        --accent-rgb: 255, 255, 255;
+        --accent-text: #121212;
+    }
+
+    /* [다크 모드 전용 변수] */
+    body.dark-mode {
+        --bg-deep: #121212;
+        --bg-card: #1e1e1e;
+        --bg-input: #121212;
+        --border-color: #333333;
+        --text-main: #f5f5f5;
+        --text-dim: #888888;
+        --shadow: rgba(0, 0, 0, 0.5);
+        --stage-back: #171717;
+    }
+
+    /* [라이트 모드 전용 변수] */
+    body.light-mode {
+        --bg-deep: #f5f5f7;
+        --bg-card: #ffffff;
+        --bg-input: #f5f5f7;
+        --border-color: #e2e8f0;
+        --text-main: #1e293b;
+        --text-dim: #64748b;
+        --shadow: rgba(148, 163, 184, 0.15);
+        --stage-back: #eef0f4;
+    }
+
+    body.theme-mono {
+        --accent: var(--text-main);
+        --accent-rgb: 255, 255, 255;
+        --accent-text: var(--bg-card);
+    }
+    body.theme-blue { --accent: #3b82f6; --accent-rgb: 59, 130, 246; --accent-text: #ffffff; }
+    body.theme-green { --accent: #10b981; --accent-rgb: 16, 185, 129; --accent-text: #ffffff; }
+    body.theme-purple { --accent: #a855f7; --accent-rgb: 168, 85, 247; --accent-text: #ffffff; }
+    body.theme-red { --accent: #ef4444; --accent-rgb: 239, 68, 68; --accent-text: #ffffff; }
+
+    * { box-sizing: border-box; outline: none; }
+
+    /* 스크롤 막대 */
+    .slot-strip, .rightbar .card, .help-content-box, #manage-list, .stage-area, .preset-list {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border-color) transparent;
+    }
+    .slot-strip::-webkit-scrollbar,
+    .rightbar .card::-webkit-scrollbar,
+    .help-content-box::-webkit-scrollbar,
+    #manage-list::-webkit-scrollbar,
+    .stage-area::-webkit-scrollbar { width: 10px; height: 10px; }
+    .slot-strip::-webkit-scrollbar-track,
+    .rightbar .card::-webkit-scrollbar-track,
+    .help-content-box::-webkit-scrollbar-track,
+    #manage-list::-webkit-scrollbar-track,
+    .stage-area::-webkit-scrollbar-track { background: transparent; }
+    .slot-strip::-webkit-scrollbar-thumb,
+    .rightbar .card::-webkit-scrollbar-thumb,
+    .help-content-box::-webkit-scrollbar-thumb,
+    #manage-list::-webkit-scrollbar-thumb,
+    .stage-area::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border: 3px solid transparent;
+        background-clip: content-box;
+        border-radius: 99px;
+    }
+    .slot-strip::-webkit-scrollbar-thumb:hover,
+    .rightbar .card::-webkit-scrollbar-thumb:hover,
+    .help-content-box::-webkit-scrollbar-thumb:hover,
+    #manage-list::-webkit-scrollbar-thumb:hover,
+    .stage-area::-webkit-scrollbar-thumb:hover {
+        background: var(--text-dim);
+        background-clip: content-box;
+    }
+    .slot-strip::-webkit-scrollbar-corner,
+    .stage-area::-webkit-scrollbar-corner { background: transparent; }
+
+    body {
+        background-color: var(--bg-deep);
+        color: var(--text-main);
+        font-family: 'Urbanist', 'Noto Sans KR', sans-serif;
+        margin: 0;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+
+    .container-box { width: 100%; max-width: 1620px; position: relative; }
+
+    .app-header {
+        display: flex; justify-content: center; align-items: center;
+        margin-bottom: 35px; padding: 0; width: 100%;
+    }
+    .title-area { text-align: center; }
+    .title-area h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -1px; color: var(--text-main); }
+    .title-area h1 span { color: var(--accent); transition: color 0.3s; }
+    .title-area p { margin: 6px 0 0; font-size: 13px; color: var(--text-dim); }
+
+    .credits-link {
+        position: absolute; top: 12px; left: 0; color: var(--text-dim);
+        font-size: 13px; font-weight: 500; letter-spacing: 0.3px; text-decoration: none;
+        transition: color 0.2s ease; z-index: 10;
+    }
+    .credits-link:hover { color: var(--accent); }
+
+    .top-right-actions { position: absolute; top: 6px; right: 0; display: flex; gap: 8px; z-index: 10; }
+
+    .header-btn {
+        background: transparent; color: var(--text-dim); border: 1px solid var(--border-color);
+        padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px;
+        font-weight: 500; transition: all 0.3s ease; display: flex; align-items: center; gap: 5px;
+    }
+    .header-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .header-btn.danger-hover:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+    .app-wrapper { width: 100%; display: grid; grid-template-columns: 340px minmax(0, 1fr) 390px; gap: 24px; align-items: start; }
+    .sidebar { display: flex; flex-direction: column; gap: 20px; }
+    .rightbar { display: flex; flex-direction: column; gap: 20px; position: sticky; top: 20px; }
+    .rightbar .card { max-height: calc(100vh - 40px); overflow-y: auto; }
+
+    .card {
+        background: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px -5px var(--shadow);
+        transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .card-title {
+        font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text-dim);
+        display: flex; align-items: center; gap: 8px;
+    }
+    .card-title.sub-labeled { margin-bottom: 6px; }
+    .card-sub-guide { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; font-weight: 400; line-height: 1.4; }
+    .card-title i { color: var(--accent); transition: color 0.3s; }
+    /* 제목줄 안의 버튼은 아이콘도 버튼 글자색을 따라간다 */
+    .card-title button i, .card-title .tool-btn i { color: inherit; }
+
+    .mode-selector {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+        background: var(--bg-input); padding: 4px; border-radius: 12px;
+        margin-bottom: 15px; border: 1px solid var(--border-color);
+    }
+    .mode-btn {
+        border: none; background: transparent; color: var(--text-dim); padding: 8px;
+        border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px;
+        display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;
+    }
+    .mode-btn.active { background: var(--bg-card); color: var(--text-main); box-shadow: 0 2px 8px var(--shadow); }
+
+    input[type="text"], input[type="number"], select {
+        width: 100%; background: var(--bg-input); border: 1px solid var(--border-color);
+        border-radius: 12px; padding: 12px 16px; color: var(--text-main); font-family: inherit;
+        font-size: 14px; margin-bottom: 12px; transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+
+    .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    button.primary-btn {
+        width: 100%; background: var(--accent); color: var(--accent-text); border: none;
+        padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+        font-family: inherit; font-size: 14px;
+    }
+    button.primary-btn:hover { filter: brightness(0.9); transform: translateY(-2px); }
+
+    button.secondary-btn {
+        width: 100%; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color);
+        padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+        font-family: inherit; font-size: 14px;
+    }
+    button.secondary-btn:hover { border-color: var(--text-dim); }
+
+    .backup-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .backup-btn {
+        background: transparent; border: 1px dashed var(--border-color); color: var(--text-dim);
+        padding: 8px; border-radius: 10px; font-size: 12px; font-weight: 500; cursor: pointer;
+        transition: all 0.2s; font-family: inherit;
+    }
+    .backup-btn:hover { border-color: var(--accent); color: var(--text-main); }
+
+    .theme-selector { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
+    .theme-dot {
+        width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+        border: 2px solid transparent; transition: transform 0.2s;
+    }
+    .theme-dot:hover { transform: scale(1.2); }
+    .theme-dot.active { border-color: var(--text-main); transform: scale(1.1); }
+
+    input[type="color"].custom-color-picker {
+        width: 24px; height: 24px; border: none; padding: 0; background: transparent;
+        cursor: pointer; border-radius: 50%; transition: transform 0.2s; margin: 0;
+    }
+    input[type="color"].custom-color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"].custom-color-picker::-webkit-color-swatch { border: 2px solid transparent; border-radius: 50%; }
+    input[type="color"].custom-color-picker:hover { transform: scale(1.1); }
+
+    /* ===== 슬롯 목록 ===== */
+    .slot-list { display: flex; flex-direction: column; gap: 10px; }
+    .slot {
+        background: var(--bg-input); border: 1px solid var(--border-color);
+        border-radius: 14px; padding: 10px 12px 12px; transition: border-color 0.2s;
+    }
+    .slot.target { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.12); }
+    .slot.hidden-layer .slot-strip, .slot.hidden-layer .slot-name { opacity: 0.35; }
+    .slot.drop-hint { border-color: var(--accent); border-style: dashed; }
+
+    .slot-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+    .slot-grip { color: var(--text-dim); cursor: grab; font-size: 12px; padding: 2px 4px; }
+    .slot-titles { flex: 1; min-width: 0; }
+    .slot-name { font-size: 14px; font-weight: 600; color: var(--text-main);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .slot-current { font-size: 11px; color: var(--accent); font-weight: 600; margin-top: 1px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .slot-current.none { color: var(--text-dim); font-weight: 400; }
+    .slot-count { font-size: 11px; color: var(--text-dim); }
+    .slot-icon {
+        background: transparent; border: none; color: var(--text-dim); cursor: pointer;
+        padding: 3px 5px; border-radius: 6px; font-size: 12px; transition: all 0.2s;
+    }
+    .slot-icon:hover { background: var(--bg-card); color: var(--accent); }
+    .slot-icon.off { color: var(--text-dim); opacity: 0.5; }
+    .slot-icon.warn { color: #f59e0b; opacity: 1; }
+    .slot-blend {
+        width: auto; margin: 0; padding: 3px 5px; font-size: 11px; border-radius: 7px;
+        background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-dim);
+        cursor: pointer;
+    }
+    .slot-blend.on { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
+    .warn-box {
+        display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid #f59e0b;
+        color: #f59e0b; border-radius: 12px; padding: 11px 13px; font-size: 12.5px;
+        line-height: 1.5; margin-bottom: 14px;
+    }
+    .warn-box.show { display: block; }
+    .warn-box b { font-weight: 700; }
+
+    .slot-strip {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 12px;
+        align-items: start; overflow-y: auto; padding: 12px 14px 10px;
+    }
+    .part-wrapper { position: relative; width: auto; min-width: 0; }
+    .part-thumb { width: 100%; height: auto; aspect-ratio: 1 / 1; }
+    .part-thumb {
+        position: relative;
+        border-radius: 12px; overflow: hidden; cursor: pointer;
+        border: 2px solid transparent; padding: 0; background-color: #ffffff;
+        background-image:
+            linear-gradient(45deg, #e2e2e8 25%, transparent 25%, transparent 75%, #e2e2e8 75%),
+            linear-gradient(45deg, #e2e2e8 25%, transparent 25%, transparent 75%, #e2e2e8 75%);
+        background-size: 14px 14px; background-position: 0 0, 7px 7px;
+        transition: border-color 0.2s, transform 0.2s;
+    }
+    .part-thumb:hover { transform: translateY(-2px); }
+    .part-thumb img { display: block; image-rendering: auto; }
+    .part-thumb.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.22); }
+    .part-thumb.selected::after {
+        content: ''; position: absolute; inset: 0; background: rgba(var(--accent-rgb), 0.10); pointer-events: none;
+    }
+    .part-check {
+        position: absolute; left: -8px; top: -8px; width: 22px; height: 22px; border-radius: 50%;
+        background: var(--accent); color: var(--accent-text); font-size: 11px; z-index: 10;
+        border: 2px solid var(--bg-input);
+        display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .part-wrapper.is-selected .part-label { color: var(--accent); font-weight: 700; }
+    .part-check {
+        position: absolute; top: -5px; left: -5px; width: 20px; height: 20px;
+        background: var(--accent); color: var(--accent-text); border: 2px solid var(--bg-input);
+        border-radius: 50%; font-size: 9px; display: flex; align-items: center; justify-content: center;
+        z-index: 9; pointer-events: none;
+    }
+    .part-label.on { color: var(--accent); font-weight: 700; }
+    .slot-selected {
+        font-size: 11px; color: var(--accent); max-width: 96px; overflow: hidden;
+        text-overflow: ellipsis; white-space: nowrap; font-weight: 600;
+    }
+    .slot-selected.none { color: var(--text-dim); font-weight: 400; opacity: 0.7; }
+
+    .combo-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .combo-chip {
+        display: flex; align-items: center; gap: 6px; font-size: 12px;
+        background: var(--bg-input); border: 1px solid var(--border-color);
+        border-radius: 10px; padding: 5px 11px; cursor: default;
+    }
+    .combo-chip .slot { color: var(--text-dim); }
+    .combo-chip .part { color: var(--text-main); font-weight: 600; }
+    .combo-chip.empty .part { color: var(--text-dim); font-weight: 400; }
+    .combo-chip.editable { cursor: pointer; }
+    .combo-chip.editable:hover { border-color: var(--accent); }
+    .combo-chip.current { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.12); }
+    .part-delete-btn {
+        position: absolute; top: -8px; right: -8px; width: 22px; height: 22px;
+        background: #64748b; border: 2px solid var(--bg-input); border-radius: 50%;
+        color: white; font-size: 10px; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; z-index: 10;
+    }
+    .part-delete-btn:hover { background: #ef4444; }
+    .part-label {
+        font-size: 11px; line-height: 15px; height: 20px; color: var(--text-dim); text-align: center; margin-top: 5px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .part-size-warn { position: absolute; bottom: 4px; left: 3px; font-size: 9px; padding: 0 4px;
+        border-radius: 4px; background: #f59e0b; color: #442c00; font-weight: 700; }
+
+    .part-add {
+        width: 100%; height: auto; aspect-ratio: 1 / 1; border-radius: 12px; cursor: pointer;
+        border: 2px dashed var(--border-color); background: transparent; color: var(--text-dim);
+        font-size: 20px; transition: all 0.2s;
+    }
+    .part-add:hover { border-color: var(--accent); color: var(--accent); }
+
+    .add-slot-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 14px; }
+    .add-slot-row input { margin-bottom: 0; padding: 10px 14px; }
+    .add-slot-row button {
+        background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main);
+        border-radius: 12px; padding: 0 16px; cursor: pointer; font-family: inherit; font-weight: 600; font-size: 13px;
+    }
+    .add-slot-row button:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ===== 메인 캔버스 ===== */
+    .main-content { display: flex; flex-direction: column; gap: 20px; }
+    .canvas-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+    .tool-btn {
+        background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);
+        padding: 4px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+        transition: all 0.3s; font-family: inherit;
+    }
+    .tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .tool-btn.active { border-color: var(--accent); color: var(--accent-text); background: var(--accent); font-weight: 600; }
+
+    .zoom-group { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; }
+    .zoom-group button {
+        background: transparent; border: none; color: var(--text-dim); cursor: pointer;
+        padding: 4px 10px; font-size: 12px; font-family: inherit;
+    }
+    .zoom-group button:hover { background: var(--bg-input); color: var(--accent); }
+    .zoom-group span { font-size: 11px; color: var(--text-dim); min-width: 46px; text-align: center; }
+
+    .stage-area {
+        background: var(--stage-back); border: 1px solid var(--border-color); border-radius: 16px;
+        min-height: 520px; display: flex; align-items: center; justify-content: center;
+        padding: 24px; overflow: auto; transition: background-color 0.3s, border-color 0.3s;
+    }
+    .stage-area.drop-hint { border-color: var(--accent); border-style: dashed; }
+
+    .stage {
+        position: relative; flex: none;
+        background-color: #ffffff;
+        background-image:
+            linear-gradient(45deg, #dcdce4 25%, transparent 25%, transparent 75%, #dcdce4 75%),
+            linear-gradient(45deg, #dcdce4 25%, transparent 25%, transparent 75%, #dcdce4 75%);
+        background-size: 18px 18px; background-position: 0 0, 9px 9px;
+        box-shadow: 0 10px 30px var(--shadow); touch-action: none;
+    }
+    .stage-inner { position: absolute; inset: 0; transform-origin: 0 0; isolation: isolate; }
+    .stage.opaque-bg { background-image: none; background-color: #ffffff; }
+    .stage-inner img { position: absolute; user-select: none; -webkit-user-drag: none; pointer-events: none; }
+    .stage.editing { cursor: grab; }
+    .stage.editing.grabbing { cursor: grabbing; }
+    .marquee {
+        position: absolute; pointer-events: none;
+        outline: 2px dashed var(--accent); outline-offset: 1px;
+        background: rgba(var(--accent-rgb), 0.07);
+    }
+
+    .stage-empty {
+        text-align: center; color: var(--text-dim); padding: 60px 20px;
+        border: 2px dashed var(--border-color); border-radius: 16px; max-width: 380px;
+    }
+    .stage-empty i { font-size: 28px; display: block; margin-bottom: 12px; color: var(--accent); }
+    .stage-empty b { color: var(--text-main); display: block; margin-bottom: 8px; font-size: 15px; }
+    .stage-empty span { font-size: 13px; line-height: 1.6; }
+
+    .edit-bar {
+        display: none; margin-top: 16px; padding: 14px 16px; border-radius: 14px;
+        background: var(--bg-input); border: 1px solid var(--accent);
+    }
+    .edit-bar.show { display: block; }
+    .edit-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .edit-row .who { font-size: 13px; font-weight: 600; color: var(--accent); }
+    .edit-row label { font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 5px; }
+    .edit-row input[type="number"] { width: 84px; margin-bottom: 0; padding: 6px 10px; border-radius: 8px; font-size: 13px; }
+    .edit-row input[type="range"] { accent-color: var(--accent); width: 130px; }
+    .edit-hint { font-size: 12px; color: var(--text-dim); margin-top: 10px; line-height: 1.5; }
+
+    /* ===== 저장 ===== */
+    .opt-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+    .opt-btn {
+        background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-dim);
+        padding: 10px 4px; border-radius: 10px; font-size: 13px; cursor: pointer;
+        font-family: inherit; font-weight: 600; transition: all 0.2s;
+    }
+    .opt-btn:hover { border-color: var(--text-dim); color: var(--text-main); }
+    .opt-btn.active { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+    .size-inputs { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 14px; }
+    .size-inputs input { margin-bottom: 0; padding: 10px 12px; }
+    .ratio-lock { font-size: 12px; color: var(--text-dim); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .out-info {
+        font-size: 13px; color: var(--text-dim); margin-bottom: 14px;
+        display: flex; justify-content: space-between; padding: 0 4px;
+    }
+    .out-info b { color: var(--accent); font-weight: 700; }
+
+    .preset-list {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+        gap: 14px 10px; margin: 14px 0 16px;
+    }
+    .preset-card { position: relative; }
+    .preset-thumb {
+        width: 100%; aspect-ratio: 1; padding: 0; cursor: pointer; overflow: hidden;
+        border-radius: 12px; border: 2px solid var(--border-color);
+        display: flex; align-items: center; justify-content: center;
+        background-color: #ffffff;
+        background-image:
+            linear-gradient(45deg, #e2e2e8 25%, transparent 25%, transparent 75%, #e2e2e8 75%),
+            linear-gradient(45deg, #e2e2e8 25%, transparent 25%, transparent 75%, #e2e2e8 75%);
+        background-size: 14px 14px; background-position: 0 0, 7px 7px;
+        transition: border-color 0.2s, transform 0.2s;
+    }
+    .preset-thumb.opaque { background-image: none; }
+    .preset-thumb:hover { transform: translateY(-2px); }
+    .preset-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .preset-name {
+        font-size: 11.5px; color: var(--text-dim); text-align: center; margin-top: 5px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .preset-card.current .preset-thumb { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.22); }
+    .preset-card.current .preset-name { color: var(--accent); font-weight: 700; }
+    .preset-del {
+        position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%;
+        background: #64748b; border: 2px solid var(--bg-card); color: #fff; font-size: 10px;
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+        padding: 0; font-family: inherit; z-index: 5;
+    }
+    .preset-del:hover { background: #ef4444; }
+
+    @media (max-width: 1400px) {
+        .app-wrapper { grid-template-columns: 300px minmax(0, 1fr); }
+        .rightbar { grid-column: 1 / -1; position: static; }
+        .rightbar .card { max-height: none; }
+    }
+    @media (max-width: 900px) {
+        .app-wrapper { grid-template-columns: 1fr; }
+        .container-box { padding: 40px 10px; }
+        .top-right-actions, .credits-link { top: 2px; }
+        .stage-area { min-height: 360px; padding: 14px; }
+    }
+
+    .modal-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px);
+        z-index: 1000; justify-content: center; align-items: center;
+    }
+    .modal-content {
+        background: var(--bg-card); border: 1px solid var(--border-color);
+        padding: 30px; border-radius: 24px; width: 90%; max-width: 500px; text-align: center;
+    }
+    .modal-footer { display: flex; gap: 12px; }
+    .modal-btn { flex: 1; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; font-size: 14px; }
+    .modal-btn.save { background: var(--accent); color: var(--accent-text); }
+    .modal-btn.cancel { background: #64748b; color: white; }
+
+    .help-content-box {
+        text-align: left; margin-bottom: 24px; color: var(--text-main); font-size: 14px;
+        line-height: 1.6; max-height: 60vh; overflow-y: auto; padding-right: 10px;
+    }
+    .help-content-box h3 { color: var(--accent); font-size: 16px; margin-top: 20px; margin-bottom: 8px; }
+    .help-content-box h3:first-child { margin-top: 0; }
+    .help-content-box ul { padding-left: 20px; margin: 0; color: var(--text-dim); }
+    .help-content-box li { margin-bottom: 6px; }
+
+    #alert-box {
+        position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+        background: var(--text-main); color: var(--bg-card);
+        padding: 12px 24px; border-radius: 12px; font-weight: 600; display: none;
+        z-index: 2000; box-shadow: 0 10px 20px var(--shadow);
+    }
+    .manage-chk { accent-color: var(--accent); width: 16px; height: 16px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body class="theme-mono dark-mode">
+
+<div class="container-box" id="main-container">
+
+    <span class="credits-link">@sa_se372</span>
+
+    <div class="top-right-actions">
+        <button class="header-btn" onclick="openHelpModal()"><i class="fa-solid fa-circle-question"></i> 도움말</button>
+        <button class="header-btn danger-hover" onclick="resetAll()"><i class="fa-solid fa-rotate-right"></i> 초기화</button>
+    </div>
+
+    <div class="app-header">
+        <div class="title-area">
+            <h1>포트레이트 <span>표정 조합기</span></h1>
+            <p>파츠를 슬롯에 쌓아 한 장으로 만듭니다</p>
+        </div>
+    </div>
+
+    <div class="app-wrapper">
+        <div class="sidebar">
+            <div class="card">
+                <div class="card-title sub-labeled"><i class="fa-solid fa-download"></i> 이미지 저장</div>
+                <div class="card-sub-guide">미리보기는 절반으로 줄여 보여주지만, 저장은 원본 크기가 기본입니다. 축소는 단계적으로 처리해 선이 덜 뭉개집니다.</div>
+                <div class="warn-box" id="hidden-warn"></div>
+
+                <div class="opt-row" id="size-options">
+                    <button class="opt-btn active" data-mode="orig">원본</button>
+                    <button class="opt-btn" data-mode="half">½ 축소</button>
+                    <button class="opt-btn" data-mode="double">2× 확대</button>
+                    <button class="opt-btn" data-mode="custom">직접 입력</button>
+                </div>
+
+                <div class="size-inputs" id="custom-size-row" style="display:none;">
+                    <input type="number" id="out-w" min="1" placeholder="가로 px">
+                    <input type="number" id="out-h" min="1" placeholder="세로 px">
+                    <label class="ratio-lock"><input type="checkbox" id="lock-ratio" checked style="width:auto; margin:0;"> 비율 유지</label>
+                </div>
+
+                <div class="opt-row" style="grid-template-columns:1fr 1fr;">
+                    <button class="opt-btn active" id="bg-transparent" onclick="setBackground(false)">배경 투명</button>
+                    <button class="opt-btn" id="bg-white" onclick="setBackground(true)">배경 흰색</button>
+                </div>
+
+                <input type="text" id="file-name" value="" placeholder="예: 캐릭터 이름" style="margin-bottom:6px;">
+                <div style="font-size:11.5px; color:var(--text-dim); margin:0 4px 14px; line-height:1.5;">
+                    여기에 적은 말이 저장할 때 파일 이름 앞에 붙습니다. 비워두면 조합 이름만으로 저장됩니다.
+                </div>
+                <div class="out-info"><span>저장 크기</span><b id="out-size-label">—</b></div>
+                <button class="primary-btn" onclick="saveImage()"><i class="fa-solid fa-file-arrow-down"></i> PNG로 저장</button>
+
+                <div class="card-title sub-labeled" style="margin-top:26px;">
+                    <i class="fa-solid fa-bookmark"></i> 조합 기억해두기
+                    <button class="tool-btn" id="preset-zoom-btn" style="margin-left:auto;" onclick="togglePresetFaceZoom()">
+                        <i class="fa-solid fa-magnifying-glass-plus"></i> 얼굴 확대
+                    </button>
+                </div>
+                <div class="card-sub-guide">지금 조합에 이름을 붙여두면 썸네일로 쌓입니다. 눌러서 되돌리거나 표정별로 한꺼번에 저장할 수 있습니다.</div>
+                <div class="add-slot-row" style="margin-top:0;">
+                    <input type="text" id="preset-name" placeholder="조합 이름 (예: 웃음)">
+                    <button onclick="savePreset()"><i class="fa-solid fa-bookmark"></i> 기억</button>
+                </div>
+                <div class="preset-list" id="preset-list"></div>
+                <button class="secondary-btn" id="download-all-btn" style="display:none;" onclick="downloadAllPresets()">
+                    <i class="fa-solid fa-boxes-stacked"></i> 기억한 조합 전부 저장
+                </button>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title"><i class="fa-solid fa-circle-half-stroke"></i> 화면 모드</div>
+                <div class="mode-selector">
+                    <button class="mode-btn" id="btn-light" onclick="setScreenMode('light')"><i class="fa-solid fa-sun"></i> 라이트</button>
+                    <button class="mode-btn active" id="btn-dark" onclick="setScreenMode('dark')"><i class="fa-solid fa-moon"></i> 다크</button>
+                </div>
+
+                <div class="card-title"><i class="fa-solid fa-palette"></i> 테마 컬러 설정</div>
+                <div class="theme-selector">
+                    <div class="theme-dot active" data-theme="mono" style="background-color:#a1a1aa;" onclick="setTheme('mono', this)"></div>
+                    <div class="theme-dot" data-theme="blue" style="background-color:#3b82f6;" onclick="setTheme('blue', this)"></div>
+                    <div class="theme-dot" data-theme="green" style="background-color:#10b981;" onclick="setTheme('green', this)"></div>
+                    <div class="theme-dot" data-theme="purple" style="background-color:#a855f7;" onclick="setTheme('purple', this)"></div>
+                    <div class="theme-dot" data-theme="red" style="background-color:#ef4444;" onclick="setTheme('red', this)"></div>
+                    <i class="fa-solid fa-angle-right" style="color:var(--border-color); font-size:14px; margin:0 4px;"></i>
+                    <input type="color" class="custom-color-picker" id="custom-theme-color" oninput="setCustomTheme(this.value)" value="#ff7700" title="직접 색상 선택">
+                </div>
+
+                <div class="card-title"><i class="fa-solid fa-folder-open"></i> 캐릭터 데이터베이스</div>
+
+                <div style="margin-bottom:20px;">
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-dim); margin-bottom:6px; font-weight:600;">
+                        <span><i class="fa-solid fa-database"></i> 브라우저 저장소</span>
+                        <span id="storage-text">불러오는 중...</span>
+                    </div>
+                    <div style="width:100%; height:8px; background:var(--bg-input); border:1px solid var(--border-color); border-radius:4px; overflow:hidden;">
+                        <div id="storage-bar-fill" style="height:100%; width:0%; background:var(--accent); transition:width 0.4s, background-color 0.4s;"></div>
+                    </div>
+                </div>
+
+                <input type="text" id="character-name" placeholder="캐릭터 이름 입력">
+                <div id="autosave-note" style="font-size:11px; color:var(--text-dim); margin:-6px 0 12px 4px; min-height:14px;"></div>
+                <div class="btn-group">
+                    <button class="secondary-btn" onclick="newCharacter()"><i class="fa-solid fa-plus"></i> 새로 만들기</button>
+                    <button class="primary-btn" onclick="saveCharacter()"><i class="fa-solid fa-floppy-disk"></i> 저장하기</button>
+                </div>
+
+                <div style="margin-top:20px;">
+                    <select id="saved-character-list" onchange="loadCharacter()">
+                        <option value="">-- 캐릭터 불러오기 --</option>
+                    </select>
+                    <button class="secondary-btn" style="margin-top:8px; padding:10px; font-size:13px;" onclick="openManageModal()">
+                        <i class="fa-solid fa-list-check"></i> 캐릭터 일괄 관리 (백업/삭제)
+                    </button>
+                </div>
+
+                <div class="backup-btn-group">
+                    <button class="backup-btn" onclick="exportDatabase()"><i class="fa-solid fa-file-export"></i> 전체 DB 백업 (.json)</button>
+                    <button class="backup-btn" onclick="document.getElementById('import-file').click()"><i class="fa-solid fa-file-import"></i> 복구 (.json)</button>
+                </div>
+                <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importDatabase(this)">
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <div class="card-title" style="flex-wrap:wrap;">
+                    <span><i class="fa-solid fa-object-group"></i> 조합 캔버스</span>
+                    <span style="font-size:12px; font-weight:400;" id="canvas-size-label">— </span>
+                    <div class="canvas-toolbar">
+                        <button class="tool-btn" id="edit-mode-btn" onclick="toggleEditMode()"><i class="fa-solid fa-up-down-left-right"></i> 위치 편집</button>
+                        <button class="tool-btn" onclick="randomize()"><i class="fa-solid fa-shuffle"></i> 무작위 조합</button>
+                        <button class="tool-btn" onclick="clearSelection()"><i class="fa-solid fa-eraser"></i> 선택 비우기</button>
+                        <div class="zoom-group">
+                            <button onclick="zoomStep(-1)"><i class="fa-solid fa-minus"></i></button>
+                            <span id="zoom-label">맞춤</span>
+                            <button onclick="zoomStep(1)"><i class="fa-solid fa-plus"></i></button>
+                            <button onclick="zoomFit()" style="border-left:1px solid var(--border-color);" title="기본 미리보기 배율(½)로 되돌리기">½</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stage-area" id="stage-area">
+                    <div class="stage" id="stage"><div class="stage-inner" id="stage-inner"></div></div>
+                    <div class="stage-empty" id="stage-empty">
+                        <i class="fa-solid fa-images"></i>
+                        <b>베이스 이미지를 올려 시작하세요</b>
+                        <span>여기로 파일을 끌어다 놓거나, 왼쪽 슬롯의 + 를 누르세요.<br>캔버스 크기는 선택한 베이스 이미지를 그대로 따릅니다.</span>
+                    </div>
+                </div>
+
+                <div class="edit-bar" id="edit-bar">
+                    <div class="edit-row">
+                        <span class="who" id="edit-who">편집할 파츠를 캔버스에서 클릭하세요</span>
+                        <div style="flex:1;"></div>
+                        <label>X <input type="number" id="pos-x" step="1"></label>
+                        <label>Y <input type="number" id="pos-y" step="1"></label>
+                        <label>크기 <input type="range" id="part-scale" min="10" max="300" value="100"><span id="scale-label" style="min-width:38px;">100%</span></label>
+                        <button class="tool-btn" onclick="fitPartToCanvas()"><i class="fa-solid fa-expand"></i> 캔버스에 맞추기</button>
+                        <button class="tool-btn" onclick="resetPartPosition()"><i class="fa-solid fa-arrows-rotate"></i> 원위치</button>
+                    </div>
+                    <div class="edit-hint">드래그로 옮기고 방향키로 1px씩(Shift 10px) 조정합니다. 조정한 위치는 파츠마다 따로 기억하며 저장 시에도 함께 보관됩니다.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rightbar">
+            <div class="card">
+                <div class="card-title sub-labeled">
+                    <i class="fa-solid fa-layer-group"></i> 슬롯 &amp; 파츠
+                    <button class="tool-btn" id="thumb-zoom-btn" style="margin-left:auto;" onclick="toggleThumbZoom()">
+                        <i class="fa-solid fa-magnifying-glass-plus"></i> 파츠만 확대
+                    </button>
+                </div>
+                <div class="card-sub-guide">목록의 아래쪽 슬롯이 위에 겹쳐집니다. 손잡이를 끌어 순서를 바꾸고, 슬롯 위로 이미지를 끌어다 놓아 등록하세요.</div>
+                <div class="slot-list" id="slot-list"></div>
+                <div class="add-slot-row">
+                    <input type="text" id="new-slot-name" placeholder="슬롯 추가 (예: 홍조)">
+                    <button onclick="addSlot()"><i class="fa-solid fa-plus"></i> 추가</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alert-box">저장되었습니다!</div>
+<input type="file" id="part-input" accept="image/*" multiple style="display:none;">
+
+<!-- 웰컴 오버레이 -->
+<div id="welcome-overlay" class="modal-overlay" style="display:flex;">
+    <div class="modal-content" style="max-width:550px;">
+        <div class="card-title" style="justify-content:center; font-size:22px; margin-bottom:20px;">
+            <i class="fa-solid fa-book-open"></i> 표정 조합기 시작하기
+        </div>
+        <div class="help-content-box" style="padding:0 10px;" id="welcome-body"></div>
+        <div class="modal-footer">
+            <button class="modal-btn save" onclick="closeWelcome()">확인 후 시작하기</button>
+        </div>
+        <label style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:14px; font-size:12px; color:var(--text-dim); cursor:pointer;">
+            <input type="checkbox" id="hide-welcome" class="manage-chk"> 다음부터 보지 않기
+        </label>
+    </div>
+</div>
+
+<!-- 도움말 모달 -->
+<div id="help-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width:550px;">
+        <div class="card-title"><i class="fa-solid fa-circle-question"></i> 사용 방법 안내</div>
+        <div class="help-content-box" style="padding:0 10px;" id="help-body"></div>
+        <div class="modal-footer">
+            <button class="modal-btn save" onclick="closeHelpModal()">확인 및 닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 캐릭터 일괄 관리 모달 -->
+<div id="manage-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width:500px;">
+        <div class="card-title"><i class="fa-solid fa-list-check"></i> 캐릭터 일괄 관리</div>
+        <div style="text-align:left; margin-bottom:10px;">
+            <input type="checkbox" id="manage-select-all" class="manage-chk" onchange="toggleSelectAllManage(this.checked)" style="vertical-align:middle;">
+            <label for="manage-select-all" style="color:var(--text-main); font-weight:600; font-size:14px; cursor:pointer;">전체 선택</label>
+        </div>
+        <div id="manage-list" style="max-height:300px; overflow-y:auto; text-align:left; border:1px solid var(--border-color); border-radius:12px; padding:10px 15px; margin-bottom:20px; background:var(--bg-input);"></div>
+        <div class="modal-footer">
+            <button class="modal-btn cancel" onclick="document.getElementById('manage-modal').style.display='none'">닫기</button>
+            <button class="modal-btn" style="background:#3b82f6; color:white;" onclick="exportSelectedCharacters()">선택 백업</button>
+            <button class="modal-btn" style="background:#ef4444; color:white;" onclick="deleteSelectedCharacters()">선택 삭제</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script>
+/* =========================================================
+   상태
+========================================================= */
+const DEFAULT_SLOTS = [
+    { key: 'base',  name: '베이스' },
+    { key: 'brow',  name: '눈썹' },
+    { key: 'eye',   name: '눈' },
+    { key: 'mouth', name: '입' },
+    { key: 'skin',  name: '안색' },
+    { key: 'acc',   name: '악세서리' }
+];
+
+const BLEND_MODES = [
+    { value: 'normal',   label: '보통' },
+    { value: 'multiply', label: '곱하기' },
+    { value: 'screen',   label: '스크린' },
+    { value: 'overlay',  label: '오버레이' },
+    { value: 'soft-light', label: '소프트라이트' }
+];
+
+let slots = [];
+let presets = [];
+let uid = 0;
+let editMode = false;
+let targetSlotKey = null;
+let zoomLevel = null;      // null = 화면에 맞춤
+let sizeMode = 'orig';
+let whiteBackground = false;
+let pickTargetKey = null;
+let userTouched = false;
+let slotSortable = null;
+let dragState = null;
+let thumbZoom = localStorage.getItem('mixer_thumb_zoom') !== '0';
+let presetFaceZoom = localStorage.getItem('mixer_preset_face') !== '0';
+
+const stageEl = document.getElementById('stage');
+const stageInner = document.getElementById('stage-inner');
+const stageArea = document.getElementById('stage-area');
+
+function makeDefaultSlots() {
+    return DEFAULT_SLOTS.map(s => ({ key: s.key, name: s.name, parts: [], selected: null, visible: true, blend: 'normal' }));
+}
+function findSlot(key) { return slots.find(s => s.key === key) || null; }
+function selectedPart(slot) { return slot.selected ? slot.parts.find(p => p.id === slot.selected) || null : null; }
+function currentPart() { const s = targetSlotKey && findSlot(targetSlotKey); return s ? selectedPart(s) : null; }
+function hasAnyPart() { return slots.some(s => s.parts.length > 0); }
+
+function canvasSize() {
+    const base = findSlot('base');
+    const p = base && selectedPart(base);
+    if (p) return { w: p.w, h: p.h };
+    if (base && base.parts.length) return { w: base.parts[0].w, h: base.parts[0].h };
+    let w = 0, h = 0;
+    slots.forEach(s => s.parts.forEach(q => { if (q.w > w) w = q.w; if (q.h > h) h = q.h; }));
+    return { w: w, h: h };
+}
+
+/* =========================================================
+   파츠 등록
+========================================================= */
+function addFilesToSlot(slotOrKey, files) {
+    const key = (typeof slotOrKey === 'string') ? slotOrKey : (slotOrKey && slotOrKey.key);
+    const slot = findSlot(key);
+    if (!slot) return;
+    const list = Array.from(files).filter(f => /^image\//.test(f.type));
+    if (!list.length) return;
+    userTouched = true;
+    let pending = list.length;
+    const done = () => { if (--pending === 0) { renderSlots(); drawStage(); } };
+
+    list.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const src = e.target.result;
+            buildPart(src, file.name.replace(/\.[^.]+$/, '')).then(part => {
+                /* 파일을 읽는 사이에 불러오기 등으로 슬롯이 새로 만들어졌을 수 있다 */
+                const target = findSlot(key);
+                if (!target) { done(); return; }
+                const c = canvasSize();
+                if (c.w && (part.w !== c.w || part.h !== c.h)) {
+                    part.x = Math.round((c.w - part.w) / 2);
+                    part.y = Math.round((c.h - part.h) / 2);
+                }
+                target.parts.push(part);
+                if (!target.selected) target.selected = part.id;
+                done();
+            }).catch(() => { alert(`'${file.name}' 파일을 이미지로 읽지 못했습니다.`); done(); });
+        };
+        reader.onerror = () => { alert(`'${file.name}' 파일을 읽지 못했습니다.`); done(); };
+        reader.readAsDataURL(file);
+    });
+}
+
+function buildPart(src, name, saved) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            const hit = makeHitCanvas(img);
+            resolve({
+                id: 'p' + (++uid),
+                name: name,
+                src: src,
+                img: img,
+                w: img.naturalWidth,
+                h: img.naturalHeight,
+                x: saved ? saved.x : 0,
+                y: saved ? saved.y : 0,
+                scale: saved ? saved.scale : 1,
+                hit: hit,
+                bbox: contentBounds(hit, img.naturalWidth, img.naturalHeight)
+            });
+        };
+        img.onerror = reject;
+        img.src = src;
+    });
+}
+
+/* 투명한 여백을 뺀 실제 그림 영역. 썸네일을 그 부분만 확대해 보여주는 데 쓴다. */
+function contentBounds(hit, w, h) {
+    const full = { x: 0, y: 0, w: w, h: h };
+    if (!hit) return full;
+    let data;
+    try { data = hit.ctx.getImageData(0, 0, hit.canvas.width, hit.canvas.height).data; }
+    catch (e) { return full; }
+    let minX = hit.canvas.width, minY = hit.canvas.height, maxX = -1, maxY = -1;
+    for (let y = 0; y < hit.canvas.height; y++) {
+        for (let x = 0; x < hit.canvas.width; x++) {
+            if (data[(y * hit.canvas.width + x) * 4 + 3] > 12) {
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+        }
+    }
+    if (maxX < 0) return full;
+    const s = hit.scale;
+    const pad = 2 / s;
+    const bx = Math.max(0, minX / s - pad);
+    const by = Math.max(0, minY / s - pad);
+    const bw = Math.min(w - bx, (maxX - minX + 1) / s + pad * 2);
+    const bh = Math.min(h - by, (maxY - minY + 1) / s + pad * 2);
+    return { x: bx, y: by, w: Math.max(1, bw), h: Math.max(1, bh) };
+}
+
+/* 투명 픽셀을 통과시키기 위한 축소 판정용 캔버스 */
+function makeHitCanvas(img) {
+    const m = Math.max(img.naturalWidth, img.naturalHeight);
+    const s = Math.min(1, 220 / m);
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.naturalWidth * s));
+    c.height = Math.max(1, Math.round(img.naturalHeight * s));
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    try { ctx.drawImage(img, 0, 0, c.width, c.height); return { canvas: c, ctx: ctx, scale: s }; }
+    catch (e) { return null; }
+}
+function isOpaqueAt(part, lx, ly) {
+    if (!part.hit) return true;
+    const px = Math.floor(lx * part.hit.scale), py = Math.floor(ly * part.hit.scale);
+    if (px < 0 || py < 0 || px >= part.hit.canvas.width || py >= part.hit.canvas.height) return false;
+    try { return part.hit.ctx.getImageData(px, py, 1, 1).data[3] > 12; }
+    catch (e) { return true; }
+}
+
+/* =========================================================
+   슬롯 렌더링
+========================================================= */
+function renderSlots() {
+    const list = document.getElementById('slot-list');
+    list.innerHTML = '';
+    const c = canvasSize();
+
+    slots.forEach(slot => {
+        const box = document.createElement('div');
+        box.className = 'slot' + (editMode && targetSlotKey === slot.key ? ' target' : '') + (slot.visible ? '' : ' hidden-layer');
+        box.dataset.key = slot.key;
+
+        const head = document.createElement('div');
+        head.className = 'slot-head';
+        const chosen = selectedPart(slot);
+        head.innerHTML = `<span class="slot-grip"><i class="fa-solid fa-grip-vertical"></i></span>
+                          <div class="slot-titles">
+                            <div class="slot-name"></div>
+                            <div class="slot-current${chosen ? '' : ' none'}"></div>
+                          </div>
+                          <span class="slot-count">${slot.parts.length}</span>`;
+        head.querySelector('.slot-name').textContent = slot.name;
+        head.querySelector('.slot-current').textContent =
+            chosen ? chosen.name : (slot.parts.length ? '선택 없음' : '파츠 없음');
+
+        const blendSel = document.createElement('select');
+        blendSel.className = 'slot-blend' + (slot.blend && slot.blend !== 'normal' ? ' on' : '');
+        blendSel.title = '레이어 합성 방식';
+        BLEND_MODES.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b.value; opt.textContent = b.label;
+            if ((slot.blend || 'normal') === b.value) opt.selected = true;
+            blendSel.appendChild(opt);
+        });
+        blendSel.onchange = () => { slot.blend = blendSel.value; renderSlots(); drawStage(); };
+        head.appendChild(blendSel);
+
+        const eye = document.createElement('button');
+        eye.className = 'slot-icon' + (slot.visible ? '' : (selectedPart(slot) ? ' warn' : ' off'));
+        eye.title = slot.visible ? '이 슬롯 숨기기' : '이 슬롯 보이기 (지금은 저장에 포함되지 않습니다)';
+        eye.innerHTML = `<i class="fa-solid ${slot.visible ? 'fa-eye' : 'fa-eye-slash'}"></i>`;
+        eye.onclick = () => { slot.visible = !slot.visible; renderSlots(); drawStage(); };
+        head.appendChild(eye);
+
+        if (!DEFAULT_SLOTS.some(d => d.key === slot.key)) {
+            const del = document.createElement('button');
+            del.className = 'slot-icon';
+            del.title = '슬롯 지우기';
+            del.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            del.onclick = () => {
+                if (!confirm(`'${slot.name}' 슬롯을 지울까요? 등록한 파츠도 함께 사라집니다.`)) return;
+                slots = slots.filter(s => s.key !== slot.key);
+                renderSlots(); drawStage();
+            };
+            head.appendChild(del);
+        }
+        box.appendChild(head);
+
+        const strip = document.createElement('div');
+        strip.className = 'slot-strip';
+
+        slot.parts.forEach(part => {
+            const wrap = document.createElement('div');
+            wrap.className = 'part-wrapper' + (slot.selected === part.id ? ' is-selected' : '');
+
+            const thumb = document.createElement('div');
+            thumb.className = 'part-thumb' + (slot.selected === part.id ? ' selected' : '');
+            thumb.title = `${part.name} · ${part.w}×${part.h}`;
+            const im = document.createElement('img');
+            im.src = part.src;
+            im.style.cssText = 'position:absolute; left:0; top:0; width:100%; height:100%; object-fit:contain;';
+            thumb._part = part;
+            thumb.appendChild(im);
+            if (c.w && (part.w !== c.w || part.h !== c.h)) {
+                const warn = document.createElement('span');
+                warn.className = 'part-size-warn';
+                warn.textContent = '크기';
+                thumb.appendChild(warn);
+            }
+            thumb.onclick = () => {
+                slot.selected = (slot.selected === part.id) ? null : part.id;
+                if (editMode && slot.selected) targetSlotKey = slot.key;
+                renderSlots(); drawStage(); syncEditBar();
+            };
+
+            const del = document.createElement('div');
+            del.className = 'part-delete-btn';
+            del.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            del.onclick = ev => {
+                ev.stopPropagation();
+                slot.parts = slot.parts.filter(p => p.id !== part.id);
+                if (slot.selected === part.id) slot.selected = slot.parts.length ? slot.parts[0].id : null;
+                renderSlots(); drawStage(); syncEditBar();
+            };
+
+            const label = document.createElement('div');
+            label.className = 'part-label';
+            label.textContent = part.name;
+
+            wrap.appendChild(thumb); wrap.appendChild(del); wrap.appendChild(label);
+            if (slot.selected === part.id) {
+                const check = document.createElement('span');
+                check.className = 'part-check';
+                check.innerHTML = '<i class="fa-solid fa-check"></i>';
+                wrap.appendChild(check);
+            }
+            strip.appendChild(wrap);
+        });
+
+        const add = document.createElement('button');
+        add.className = 'part-add';
+        add.innerHTML = '<i class="fa-solid fa-plus"></i>';
+        add.title = '이미지 등록';
+        add.onclick = () => { pickTargetKey = slot.key; document.getElementById('part-input').click(); };
+        strip.appendChild(add);
+
+        box.appendChild(strip);
+
+        box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('drop-hint'); });
+        box.addEventListener('dragleave', () => box.classList.remove('drop-hint'));
+        box.addEventListener('drop', e => {
+            e.preventDefault(); e.stopPropagation();
+            box.classList.remove('drop-hint');
+            if (e.dataTransfer.files) addFilesToSlot(slot.key, e.dataTransfer.files);
+        });
+
+        list.appendChild(box);
+    });
+
+    initSlotSortable();
+    scheduleAutosave();
+    refreshPresetHighlight();
+    requestAnimationFrame(layoutStrips);
+}
+
+/* 썸네일 안에서 파츠의 그림 부분만 꽉 차게 키운다 (실제 렌더 크기 기준) */
+const THUMB_MAX_ZOOM = 6;
+function applyThumbZoom(imgEl, part, box) {
+    if (!thumbZoom || !part.bbox || !box) {
+        imgEl.style.cssText = 'position:absolute; left:0; top:0; width:100%; height:100%; object-fit:contain;';
+        return;
+    }
+    const b = part.bbox;
+    const inner = box - 6;
+    const sc = Math.min(inner / b.w, inner / b.h, THUMB_MAX_ZOOM);
+    imgEl.style.position = 'absolute';
+    imgEl.style.width = (part.w * sc) + 'px';
+    imgEl.style.height = (part.h * sc) + 'px';
+    imgEl.style.left = (-b.x * sc + (box - b.w * sc) / 2) + 'px';
+    imgEl.style.top = (-b.y * sc + (box - b.h * sc) / 2) + 'px';
+    imgEl.style.maxWidth = 'none';
+}
+
+/* 칸 너비는 화면에 따라 달라지므로, 그려진 뒤 크기를 재어 맞춘다 */
+function layoutThumbs() {
+    document.querySelectorAll('#slot-list .part-thumb').forEach(thumb => {
+        const img = thumb.querySelector('img');
+        if (!img || !thumb._part) return;
+        applyThumbZoom(img, thumb._part, thumb.clientWidth);
+    });
+}
+
+/* 3줄 높이를 잡고, 고른 파츠가 늘 가운데 줄에 오도록 스크롤을 맞춘다 */
+const STRIP_ROWS = 3;
+function layoutStrips() {
+    layoutThumbs();
+    document.querySelectorAll('#slot-list .slot-strip').forEach(strip => {
+        const items = strip.querySelectorAll('.part-wrapper, .part-add');
+        if (!items.length) return;
+        const rowH = items[0].offsetHeight;
+        const rows = Math.ceil(items.length / 3);
+        const gap = 16, padV = 22;
+        if (rows > STRIP_ROWS) {
+            strip.style.height = (rowH * STRIP_ROWS + gap * (STRIP_ROWS - 1) + padV) + 'px';
+        } else {
+            strip.style.height = 'auto';
+        }
+        const sel = strip.querySelector('.part-wrapper.is-selected');
+        if (!sel) { strip.scrollTop = 0; return; }
+        const sr = strip.getBoundingClientRect(), tr = sel.getBoundingClientRect();
+        strip.scrollTop += (tr.top - sr.top) - (strip.clientHeight - tr.height) / 2;
+    });
+}
+window.addEventListener('resize', () => requestAnimationFrame(layoutStrips));
+
+function initSlotSortable() {
+    const list = document.getElementById('slot-list');
+    if (slotSortable) slotSortable.destroy();
+    slotSortable = Sortable.create(list, {
+        animation: 200,
+        handle: '.slot-grip',
+        onEnd: evt => {
+            const moved = slots.splice(evt.oldIndex, 1)[0];
+            slots.splice(evt.newIndex, 0, moved);
+            drawStage();
+        }
+    });
+}
+
+document.getElementById('part-input').addEventListener('change', function (e) {
+    if (pickTargetKey && e.target.files) addFilesToSlot(pickTargetKey, e.target.files);
+    e.target.value = '';
+});
+
+function toggleThumbZoom() {
+    thumbZoom = !thumbZoom;
+    localStorage.setItem('mixer_thumb_zoom', thumbZoom ? '1' : '0');
+    syncThumbZoomBtn();
+    renderSlots();
+}
+function syncThumbZoomBtn() {
+    const btn = document.getElementById('thumb-zoom-btn');
+    if (!btn) return;
+    btn.classList.toggle('active', thumbZoom);
+    btn.innerHTML = thumbZoom
+        ? '<i class="fa-solid fa-magnifying-glass-plus"></i> 파츠만 확대'
+        : '<i class="fa-solid fa-vector-square"></i> 캔버스 전체';
+    btn.title = thumbZoom ? '눌러서 캔버스 전체 모습으로 보기' : '눌러서 파츠 부분만 확대해 보기';
+}
+
+function addSlot() {
+    const input = document.getElementById('new-slot-name');
+    const name = input.value.trim();
+    if (!name) return;
+    slots.push({ key: 'custom_' + (++uid), name: name, parts: [], selected: null, visible: true, blend: 'normal' });
+    input.value = '';
+    renderSlots(); drawStage();
+    showToast(`'${name}' 슬롯이 추가되었습니다.`);
+}
+document.getElementById('new-slot-name').addEventListener('keydown', e => { if (e.key === 'Enter') addSlot(); });
+
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(n => {
+    stageArea.addEventListener(n, e => { e.preventDefault(); e.stopPropagation(); });
+});
+stageArea.addEventListener('dragover', () => stageArea.classList.add('drop-hint'));
+stageArea.addEventListener('dragleave', () => stageArea.classList.remove('drop-hint'));
+stageArea.addEventListener('drop', e => {
+    stageArea.classList.remove('drop-hint');
+    if (e.dataTransfer.files) addFilesToSlot((findSlot('base') || slots[0]).key, e.dataTransfer.files);
+});
+
+/* =========================================================
+   캔버스 표시
+========================================================= */
+/* 미리보기는 원본의 1/2로 표시한다. 영역보다 크면 그만큼만 더 줄인다.
+   저장은 이 배율과 무관하게 항상 원본 크기 기준으로 처리된다. */
+const PREVIEW_SCALE = 0.5;
+function stageScale() {
+    const c = canvasSize();
+    if (!c.w) return PREVIEW_SCALE;
+    if (zoomLevel) return zoomLevel;
+    const aw = stageArea.clientWidth - 56;
+    const ah = 560;
+    return Math.min(aw / c.w, ah / c.h, PREVIEW_SCALE);
+}
+
+function drawStage() {
+    const c = canvasSize();
+    document.getElementById('canvas-size-label').textContent =
+        c.w ? `원본 ${c.w} × ${c.h} px · 미리보기 축소 표시` : '—';
+    const empty = !hasAnyPart();
+    document.getElementById('stage-empty').style.display = empty ? 'block' : 'none';
+    stageEl.style.display = empty ? 'none' : 'block';
+    if (!c.w) { updateOutLabel(); return; }
+
+    const k = stageScale();
+    stageEl.style.width = (c.w * k) + 'px';
+    stageEl.style.height = (c.h * k) + 'px';
+    stageInner.style.width = c.w + 'px';
+    stageInner.style.height = c.h + 'px';
+    stageInner.style.transform = `scale(${k})`;
+    stageEl.classList.toggle('opaque-bg', whiteBackground);
+    document.getElementById('zoom-label').textContent = Math.round(k * 100) + '%';
+
+    stageInner.innerHTML = '';
+    slots.forEach(slot => {
+        if (!slot.visible) return;
+        const p = selectedPart(slot);
+        if (!p) return;
+        const im = document.createElement('img');
+        im.src = p.src;
+        im.style.left = p.x + 'px';
+        im.style.top = p.y + 'px';
+        im.style.width = (p.w * p.scale) + 'px';
+        im.style.height = (p.h * p.scale) + 'px';
+        im.style.mixBlendMode = slot.blend && slot.blend !== 'normal' ? slot.blend : 'normal';
+        stageInner.appendChild(im);
+    });
+
+    if (editMode) {
+        const p = currentPart();
+        if (p) {
+            const m = document.createElement('div');
+            m.className = 'marquee';
+            m.style.left = p.x + 'px';
+            m.style.top = p.y + 'px';
+            m.style.width = (p.w * p.scale) + 'px';
+            m.style.height = (p.h * p.scale) + 'px';
+            stageInner.appendChild(m);
+        }
+    }
+    updateOutLabel();
+}
+
+function zoomStep(dir) {
+    const cur = zoomLevel || stageScale();
+    zoomLevel = dir > 0 ? Math.min(cur * 1.25, 4) : Math.max(cur / 1.25, 0.05);
+    drawStage();
+}
+function zoomFit() { zoomLevel = null; drawStage(); }
+window.addEventListener('resize', () => { if (!zoomLevel) drawStage(); });
+
+/* =========================================================
+   위치 편집
+========================================================= */
+function toggleEditMode() {
+    editMode = !editMode;
+    const btn = document.getElementById('edit-mode-btn');
+    btn.classList.toggle('active', editMode);
+    btn.innerHTML = editMode
+        ? '<i class="fa-solid fa-check"></i> 편집 끝내기'
+        : '<i class="fa-solid fa-up-down-left-right"></i> 위치 편집';
+    document.getElementById('edit-bar').classList.toggle('show', editMode);
+    stageEl.classList.toggle('editing', editMode);
+    if (editMode && !targetSlotKey) {
+        const withPart = slots.filter(s => selectedPart(s));
+        if (withPart.length) targetSlotKey = withPart[withPart.length - 1].key;
+    }
+    showToast(editMode ? '편집 모드 ON: 캔버스에서 파츠를 끌어 옮기세요.' : '편집 모드 OFF');
+    renderSlots(); drawStage(); syncEditBar();
+    if (!editMode) renderPresets();
+}
+
+function syncEditBar() {
+    if (!editMode) return;
+    const slot = targetSlotKey && findSlot(targetSlotKey);
+    const p = slot ? selectedPart(slot) : null;
+    document.getElementById('edit-who').textContent = p ? `${slot.name} · ${p.name}` : '편집할 파츠를 캔버스에서 클릭하세요';
+    document.getElementById('pos-x').value = p ? Math.round(p.x) : '';
+    document.getElementById('pos-y').value = p ? Math.round(p.y) : '';
+    document.getElementById('part-scale').value = p ? Math.round(p.scale * 100) : 100;
+    document.getElementById('scale-label').textContent = (p ? Math.round(p.scale * 100) : 100) + '%';
+}
+
+stageEl.addEventListener('pointerdown', e => {
+    if (!editMode) return;
+    const rect = stageEl.getBoundingClientRect();
+    const k = stageScale();
+    const cx = (e.clientX - rect.left) / k, cy = (e.clientY - rect.top) / k;
+
+    for (let i = slots.length - 1; i >= 0; i--) {
+        const slot = slots[i];
+        if (!slot.visible) continue;
+        const p = selectedPart(slot);
+        if (!p) continue;
+        const lx = (cx - p.x) / p.scale, ly = (cy - p.y) / p.scale;
+        if (lx >= 0 && ly >= 0 && lx < p.w && ly < p.h && isOpaqueAt(p, lx, ly)) { targetSlotKey = slot.key; break; }
+    }
+    const p = currentPart();
+    if (!p) return;
+    dragState = { ox: cx - p.x, oy: cy - p.y };
+    stageEl.setPointerCapture(e.pointerId);
+    stageEl.classList.add('grabbing');
+    renderSlots(); drawStage(); syncEditBar();
+});
+stageEl.addEventListener('pointermove', e => {
+    if (!dragState) return;
+    const p = currentPart(); if (!p) return;
+    const rect = stageEl.getBoundingClientRect(), k = stageScale();
+    p.x = Math.round((e.clientX - rect.left) / k - dragState.ox);
+    p.y = Math.round((e.clientY - rect.top) / k - dragState.oy);
+    drawStage(); syncEditBar();
+});
+['pointerup', 'pointercancel'].forEach(ev => {
+    stageEl.addEventListener(ev, () => {
+        if (dragState) scheduleAutosave();
+        dragState = null; stageEl.classList.remove('grabbing');
+    });
+});
+
+document.getElementById('pos-x').oninput = function () { const p = currentPart(); if (p) { p.x = parseInt(this.value, 10) || 0; drawStage(); scheduleAutosave(); } };
+document.getElementById('pos-y').oninput = function () { const p = currentPart(); if (p) { p.y = parseInt(this.value, 10) || 0; drawStage(); scheduleAutosave(); } };
+document.getElementById('part-scale').oninput = function () {
+    document.getElementById('scale-label').textContent = this.value + '%';
+    const p = currentPart(); if (p) { p.scale = parseInt(this.value, 10) / 100; drawStage(); scheduleAutosave(); }
+};
+function resetPartPosition() {
+    const p = currentPart(); if (!p) return;
+    const c = canvasSize();
+    p.scale = 1;
+    p.x = (p.w === c.w) ? 0 : Math.round((c.w - p.w) / 2);
+    p.y = (p.h === c.h) ? 0 : Math.round((c.h - p.h) / 2);
+    drawStage(); syncEditBar();
+}
+function fitPartToCanvas() {
+    const p = currentPart(); if (!p) return;
+    const c = canvasSize(); if (!c.w) return;
+    p.scale = Math.min(c.w / p.w, c.h / p.h);
+    p.x = Math.round((c.w - p.w * p.scale) / 2);
+    p.y = Math.round((c.h - p.h * p.scale) / 2);
+    drawStage(); syncEditBar();
+}
+
+window.addEventListener('keydown', e => {
+    const anyModalOpen = ['cropper-modal', 'help-modal', 'welcome-overlay', 'manage-modal']
+        .some(id => { const el = document.getElementById(id); return el && el.style.display === 'flex'; });
+    if (anyModalOpen) {
+        if (e.key === 'Escape') {
+            ['help-modal', 'manage-modal'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+            const w = document.getElementById('welcome-overlay');
+            if (w.style.display === 'flex') closeWelcome();
+        }
+        return;
+    }
+    if (!editMode) return;
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) return;
+    const p = currentPart(); if (!p) return;
+    const d = e.shiftKey ? 10 : 1;
+    let moved = true;
+    if (e.key === 'ArrowLeft') p.x -= d;
+    else if (e.key === 'ArrowRight') p.x += d;
+    else if (e.key === 'ArrowUp') p.y -= d;
+    else if (e.key === 'ArrowDown') p.y += d;
+    else moved = false;
+    if (moved) { e.preventDefault(); drawStage(); syncEditBar(); scheduleAutosave(); }
+});
+
+/* =========================================================
+   조합 도구
+========================================================= */
+function randomize() {
+    slots.forEach(slot => {
+        if (!slot.parts.length) return;
+        if (slot.key === 'base' && slot.selected) return;
+        slot.selected = slot.parts[Math.floor(Math.random() * slot.parts.length)].id;
+    });
+    renderSlots(); drawStage(); syncEditBar();
+    showToast('무작위로 조합했습니다.');
+}
+function clearSelection() {
+    slots.forEach(slot => { if (slot.key !== 'base') slot.selected = null; });
+    renderSlots(); drawStage(); syncEditBar();
+}
+
+/* =========================================================
+   저장
+========================================================= */
+document.getElementById('size-options').addEventListener('click', e => {
+    const btn = e.target.closest('.opt-btn');
+    if (!btn) return;
+    sizeMode = btn.dataset.mode;
+    document.querySelectorAll('#size-options .opt-btn').forEach(b => b.classList.toggle('active', b === btn));
+    const row = document.getElementById('custom-size-row');
+    row.style.display = sizeMode === 'custom' ? 'grid' : 'none';
+    if (sizeMode === 'custom' && !document.getElementById('out-w').value) {
+        const c = canvasSize();
+        document.getElementById('out-w').value = c.w;
+        document.getElementById('out-h').value = c.h;
+    }
+    updateOutLabel();
+});
+function setBackground(white) {
+    whiteBackground = white;
+    document.getElementById('bg-white').classList.toggle('active', white);
+    document.getElementById('bg-transparent').classList.toggle('active', !white);
+    drawStage();
+    renderPresets();
+}
+document.getElementById('out-w').oninput = function () {
+    if (document.getElementById('lock-ratio').checked) {
+        const c = canvasSize();
+        if (c.w) document.getElementById('out-h').value = Math.max(1, Math.round(this.value * c.h / c.w));
+    }
+    updateOutLabel();
+};
+document.getElementById('out-h').oninput = function () {
+    if (document.getElementById('lock-ratio').checked) {
+        const c = canvasSize();
+        if (c.h) document.getElementById('out-w').value = Math.max(1, Math.round(this.value * c.w / c.h));
+    }
+    updateOutLabel();
+};
+
+function outputSize() {
+    const c = canvasSize();
+    if (!c.w) return { w: 0, h: 0 };
+    if (sizeMode === 'half') return { w: Math.max(1, Math.round(c.w / 2)), h: Math.max(1, Math.round(c.h / 2)) };
+    if (sizeMode === 'double') return { w: c.w * 2, h: c.h * 2 };
+    if (sizeMode === 'custom') return {
+        w: Math.max(1, parseInt(document.getElementById('out-w').value, 10) || c.w),
+        h: Math.max(1, parseInt(document.getElementById('out-h').value, 10) || c.h)
+    };
+    return { w: c.w, h: c.h };
+}
+function updateOutLabel() {
+    const o = outputSize();
+    document.getElementById('out-size-label').textContent = o.w ? `${o.w} × ${o.h} px` : '—';
+    updateHiddenWarning();
+}
+
+/* 눈을 꺼둔 슬롯에 파츠가 골라져 있으면 그 파츠는 저장되지 않는다 */
+function hiddenButChosen() {
+    return slots.filter(s => !s.visible && selectedPart(s));
+}
+function updateHiddenWarning() {
+    const box = document.getElementById('hidden-warn');
+    if (!box) return;
+    const hidden = hiddenButChosen();
+    box.classList.toggle('show', hidden.length > 0);
+    if (!hidden.length) return;
+    const names = hidden.map(s => `${s.name}(${selectedPart(s).name})`).join(', ');
+    box.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <b>숨긴 슬롯 ${hidden.length}개는 저장되지 않습니다.</b><br>${names} — 포함하려면 슬롯의 눈 아이콘을 다시 켜주세요.`;
+}
+function confirmHidden(actionLabel) {
+    const hidden = hiddenButChosen();
+    if (!hidden.length) return true;
+    const names = hidden.map(s => `· ${s.name} → ${selectedPart(s).name}`).join('\n');
+    return confirm(`숨겨둔 슬롯 ${hidden.length}개는 이미지에 들어가지 않습니다.\n\n${names}\n\n이대로 ${actionLabel}할까요?`);
+}
+
+function renderComposite() {
+    const c = canvasSize();
+    if (!c.w) return null;
+    const base = document.createElement('canvas');
+    base.width = c.w; base.height = c.h;
+    const ctx = base.getContext('2d');
+    if (whiteBackground) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.w, c.h); }
+    slots.forEach(slot => {
+        if (!slot.visible) return;
+        const p = selectedPart(slot);
+        if (!p) return;
+        ctx.globalCompositeOperation = (slot.blend && slot.blend !== 'normal') ? slot.blend : 'source-over';
+        ctx.drawImage(p.img, p.x, p.y, p.w * p.scale, p.h * p.scale);
+    });
+    ctx.globalCompositeOperation = 'source-over';
+
+    const o = outputSize();
+    if (o.w === c.w && o.h === c.h) return base;
+
+    let src = base, sw = c.w, sh = c.h;
+    while (sw / 2 > o.w && sh / 2 > o.h) {
+        const tmp = document.createElement('canvas');
+        tmp.width = Math.round(sw / 2); tmp.height = Math.round(sh / 2);
+        const tctx = tmp.getContext('2d');
+        tctx.imageSmoothingEnabled = true; tctx.imageSmoothingQuality = 'high';
+        tctx.drawImage(src, 0, 0, tmp.width, tmp.height);
+        src = tmp; sw = tmp.width; sh = tmp.height;
+    }
+    const out = document.createElement('canvas');
+    out.width = o.w; out.height = o.h;
+    const octx = out.getContext('2d');
+    octx.imageSmoothingEnabled = true; octx.imageSmoothingQuality = 'high';
+    if (whiteBackground) { octx.fillStyle = '#ffffff'; octx.fillRect(0, 0, o.w, o.h); }
+    octx.drawImage(src, 0, 0, o.w, o.h);
+    return out;
+}
+
+function downloadCanvas(canvas, name) {
+    canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = (name || 'portrait') + '.png';
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }, 'image/png');
+}
+
+/* 파일 이름 = [앞에 붙일 말] + [지금 조합의 이름] */
+function comboLabel() {
+    const matched = presets.find(pr => isCurrentCombo(pr));
+    if (matched) return matched.name;
+    const mouth = findSlot('mouth');
+    const mp = mouth && selectedPart(mouth);
+    if (mp) return mp.name;
+    return 'portrait';
+}
+function buildFileName(label) {
+    const prefix = document.getElementById('file-name').value.trim();
+    return prefix ? `${prefix}_${label}` : label;
+}
+
+function saveImage() {
+    if (!hasAnyPart()) return alert('먼저 파츠를 등록해주세요.');
+    if (!confirmHidden('저장')) return;
+    const canvas = renderComposite();
+    if (!canvas) return alert('먼저 파츠를 등록해주세요.');
+    downloadCanvas(canvas, buildFileName(comboLabel()));
+    showToast('PNG로 저장했습니다.');
+}
+
+/* =========================================================
+   조합 프리셋
+========================================================= */
+function savePreset() {
+    if (!hasAnyPart()) return alert('먼저 파츠를 등록해주세요.');
+    const sel = {};
+    slots.forEach(s => sel[s.key] = s.selected);
+    const mouth = findSlot('mouth');
+    const mp = mouth && selectedPart(mouth);
+    const input = document.getElementById('preset-name');
+    const name = input.value.trim() || (mp ? mp.name : '조합 ' + (presets.length + 1));
+    presets.push({ name: name, sel: sel });
+    input.value = '';
+    renderPresets();
+    showToast(`'${name}' 조합을 기억했습니다.`);
+}
+function applyPreset(index) {
+    const pr = presets[index]; if (!pr) return;
+    slots.forEach(s => { if (Object.prototype.hasOwnProperty.call(pr.sel, s.key)) s.selected = pr.sel[s.key]; });
+    renderSlots(); drawStage(); syncEditBar();
+}
+/* 지금 화면의 조합과 똑같은지 */
+function isCurrentCombo(pr) {
+    return slots.every(s => (pr.sel && pr.sel[s.key] ? pr.sel[s.key] : null) === s.selected);
+}
+/* 조합이 바뀔 때 썸네일 테두리 강조만 다시 칠한다 */
+function refreshPresetHighlight() {
+    document.querySelectorAll('#preset-list .preset-card').forEach((card, i) => {
+        if (presets[i]) card.classList.toggle('current', isCurrentCombo(presets[i]));
+    });
+}
+function renderPresets() {
+    const box = document.getElementById('preset-list');
+    box.innerHTML = '';
+    presets.forEach((pr, i) => {
+        const card = document.createElement('div');
+        card.className = 'preset-card' + (isCurrentCombo(pr) ? ' current' : '');
+        card.dataset.index = i;
+
+        const thumb = document.createElement('button');
+        thumb.className = 'preset-thumb' + (whiteBackground ? ' opaque' : '');
+        thumb.title = `'${pr.name}' 조합으로 되돌리기`;
+        const src = renderPresetThumb(pr);
+        if (src) {
+            const im = document.createElement('img');
+            im.src = src;
+            thumb.appendChild(im);
+        } else {
+            thumb.innerHTML = '<i class="fa-solid fa-image" style="color:var(--text-dim);"></i>';
+        }
+        thumb.onclick = () => applyPreset(i);
+
+        const name = document.createElement('div');
+        name.className = 'preset-name';
+        name.textContent = pr.name;
+        name.title = pr.name;
+
+        const del = document.createElement('button');
+        del.className = 'preset-del';
+        del.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        del.title = '이 조합 지우기';
+        del.onclick = () => { presets.splice(i, 1); renderPresets(); };
+
+        card.appendChild(thumb); card.appendChild(name); card.appendChild(del);
+        box.appendChild(card);
+    });
+    scheduleAutosave();
+    document.getElementById('download-all-btn').style.display = presets.length ? 'block' : 'none';
+}
+
+/* 기억해둔 조합을 작은 캔버스에 합성해 썸네일로 만든다 */
+const PRESET_THUMB = 190;
+
+/* 베이스를 뺀 파츠(눈·입·눈썹 등)가 모인 자리 = 얼굴. 그 부분만 잘라 보여준다. */
+function faceCropFor(sel) {
+    const c = canvasSize();
+    if (!c.w) return null;
+    const full = { x: 0, y: 0, w: c.w, h: c.h };
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    slots.forEach(slot => {
+        if (slot.key === 'base' || !slot.visible) return;
+        const id = sel ? sel[slot.key] : null;
+        const part = id ? slot.parts.find(q => q.id === id) : null;
+        if (!part || !part.bbox) return;
+        const x1 = part.x + part.bbox.x * part.scale;
+        const y1 = part.y + part.bbox.y * part.scale;
+        const x2 = x1 + part.bbox.w * part.scale;
+        const y2 = y1 + part.bbox.h * part.scale;
+        if (x1 < minX) minX = x1;
+        if (y1 < minY) minY = y1;
+        if (x2 > maxX) maxX = x2;
+        if (y2 > maxY) maxY = y2;
+    });
+    if (maxX === -Infinity) return full;
+
+    const w = maxX - minX, h = maxY - minY;
+    let side = Math.max(w, h) * 1.6;
+    side = Math.max(side, Math.min(c.w, c.h) * 0.18);
+    side = Math.min(side, Math.max(c.w, c.h));
+    const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+    let x = cx - side / 2, y = cy - side / 2;
+    x = (side <= c.w) ? Math.min(Math.max(x, 0), c.w - side) : (c.w - side) / 2;
+    y = (side <= c.h) ? Math.min(Math.max(y, 0), c.h - side) : (c.h - side) / 2;
+    return { x: x, y: y, w: side, h: side };
+}
+
+function renderPresetThumb(pr) {
+    const c = canvasSize();
+    if (!c.w) return null;
+    const crop = (presetFaceZoom ? faceCropFor(pr.sel) : null) || { x: 0, y: 0, w: c.w, h: c.h };
+    const k = Math.min(PRESET_THUMB / crop.w, PRESET_THUMB / crop.h);
+    const cv = document.createElement('canvas');
+    cv.width = Math.max(1, Math.round(crop.w * k));
+    cv.height = Math.max(1, Math.round(crop.h * k));
+    const ctx = cv.getContext('2d');
+    if (whiteBackground) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cv.width, cv.height); }
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.scale(k, k);
+    ctx.translate(-crop.x, -crop.y);
+    let drew = false;
+    slots.forEach(slot => {
+        if (!slot.visible) return;
+        const id = pr.sel ? pr.sel[slot.key] : null;
+        const part = id ? slot.parts.find(q => q.id === id) : null;
+        if (!part) return;
+        ctx.globalCompositeOperation = (slot.blend && slot.blend !== 'normal') ? slot.blend : 'source-over';
+        ctx.drawImage(part.img, part.x, part.y, part.w * part.scale, part.h * part.scale);
+        drew = true;
+    });
+    ctx.globalCompositeOperation = 'source-over';
+    if (!drew) return null;
+    try { return cv.toDataURL('image/png'); } catch (e) { return null; }
+}
+
+function togglePresetFaceZoom() {
+    presetFaceZoom = !presetFaceZoom;
+    localStorage.setItem('mixer_preset_face', presetFaceZoom ? '1' : '0');
+    syncPresetZoomBtn();
+    renderPresets();
+}
+function syncPresetZoomBtn() {
+    const btn = document.getElementById('preset-zoom-btn');
+    if (!btn) return;
+    btn.classList.toggle('active', presetFaceZoom);
+    btn.innerHTML = presetFaceZoom
+        ? '<i class="fa-solid fa-magnifying-glass-plus"></i> 얼굴 확대'
+        : '<i class="fa-solid fa-child-reaching"></i> 전체';
+    btn.title = presetFaceZoom ? '눌러서 전신으로 보기' : '눌러서 얼굴만 확대해 보기';
+}
+
+function downloadAllPresets() {
+    if (!presets.length) return;
+    if (!confirmHidden('전부 저장')) return;
+    const keep = {};
+    slots.forEach(s => keep[s.key] = s.selected);
+
+    presets.forEach((pr, i) => {
+        setTimeout(() => {
+            slots.forEach(s => { if (Object.prototype.hasOwnProperty.call(pr.sel, s.key)) s.selected = pr.sel[s.key]; });
+            const canvas = renderComposite();
+            if (canvas) downloadCanvas(canvas, buildFileName(pr.name));
+            if (i === presets.length - 1) {
+                slots.forEach(s => s.selected = keep[s.key]);
+                renderSlots(); drawStage();
+                showToast(`${presets.length}장을 저장했습니다.`);
+            }
+        }, i * 450);
+    });
+}
+
+/* =========================================================
+   IndexedDB 저장소
+========================================================= */
+const IDB_NAME = 'PortraitMixerDB';
+const IDB_STORE = 'characters';
+let idbInstance = null;
+
+function openIDB() {
+    return new Promise((resolve, reject) => {
+        if (idbInstance) return resolve(idbInstance);
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+        };
+        req.onsuccess = e => { idbInstance = e.target.result; resolve(idbInstance); };
+        req.onerror = e => reject(e.target.error);
+    });
+}
+async function idbSet(key, value) {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(value, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = e => reject(e.target.error);
+    });
+}
+async function idbGet(key) {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = e => reject(e.target.error);
+    });
+}
+async function idbDelete(key) {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = e => reject(e.target.error);
+    });
+}
+async function idbGetAllKeys() {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(IDB_STORE, 'readonly');
+        const req = tx.objectStore(IDB_STORE).getAllKeys();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = e => reject(e.target.error);
+    });
+}
+
+async function updateStorageIndicator() {
+    try {
+        if (navigator.storage && navigator.storage.estimate) {
+            const est = await navigator.storage.estimate();
+            const usedBytes = est.usage || 0;
+            const quotaBytes = est.quota || 0;
+            const usedMB = (usedBytes / (1024 * 1024)).toFixed(1);
+            const quotaLabel = quotaBytes >= 1024 * 1024 * 1024
+                ? `${(quotaBytes / (1024 * 1024 * 1024)).toFixed(1)}GB`
+                : `${(quotaBytes / (1024 * 1024)).toFixed(0)}MB`;
+            const percent = quotaBytes > 0 ? Math.min((usedBytes / quotaBytes) * 100, 100) : 0;
+            document.getElementById('storage-text').innerText = `${usedMB}MB / ${quotaLabel} (${percent.toFixed(1)}%)`;
+            const bar = document.getElementById('storage-bar-fill');
+            bar.style.width = percent + '%';
+            bar.style.backgroundColor = percent > 90 ? '#ef4444' : 'var(--accent)';
+            return;
+        }
+    } catch (e) { console.error(e); }
+    document.getElementById('storage-text').innerText = '용량 정보 확인 불가';
+}
+
+function serializeState() {
+    return JSON.stringify({
+        version: 1,
+        characterName: document.getElementById('character-name').value.trim(),
+        slots: slots.map(s => ({
+            key: s.key, name: s.name, visible: s.visible, selected: s.selected, blend: s.blend || 'normal',
+            parts: s.parts.map(p => ({ id: p.id, name: p.name, src: p.src, x: p.x, y: p.y, scale: p.scale }))
+        })),
+        presets: presets
+    });
+}
+
+/* ---- 작업 중인 내용 자동 저장 (새로고침 대비) ---- */
+const AUTOSAVE_KEY = '__작업중__';
+let autosaveTimer = null;
+let restoring = false;
+
+function scheduleAutosave() {
+    if (restoring) return;
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(runAutosave, 1200);
+}
+async function runAutosave() {
+    if (restoring) return;
+    try {
+        if (!hasAnyPart() && !presets.length) { await idbDelete(AUTOSAVE_KEY); setAutosaveNote(''); return; }
+        await idbSet(AUTOSAVE_KEY, serializeState());
+        const t = new Date();
+        setAutosaveNote(`자동 저장됨 · ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`);
+        updateStorageIndicator();
+    } catch (e) {
+        setAutosaveNote('자동 저장 실패 — 용량을 확인해주세요');
+    }
+}
+function setAutosaveNote(text) {
+    const el = document.getElementById('autosave-note');
+    if (el) el.textContent = text;
+}
+async function restoreAutosave() {
+    let raw;
+    try { raw = await idbGet(AUTOSAVE_KEY); } catch (e) { return; }
+    if (!raw || userTouched) return;
+    setAutosaveNote('이전 작업을 불러오는 중...');
+    let ok = false;
+    try { ok = await applySavedState(raw, true, true); }
+    catch (e) { setAutosaveNote('이전 작업을 불러오지 못했습니다'); return; }
+    if (ok) {
+        setAutosaveNote('이전 작업을 이어서 불러왔습니다');
+        showToast('이전에 작업하던 내용을 그대로 불러왔습니다.');
+    } else {
+        setAutosaveNote('');
+    }
+}
+
+async function saveCharacter() {
+    const name = document.getElementById('character-name').value.trim();
+    if (!name) return alert('캐릭터 이름을 입력해주세요.');
+    if (!hasAnyPart()) return alert('저장할 파츠가 없습니다.');
+    try {
+        showToast('저장하는 중입니다...');
+        await idbSet(name, serializeState());
+        await updateCharacterList();
+        await updateStorageIndicator();
+        showToast(`'${name}' 캐릭터가 저장되었습니다.`);
+    } catch (e) {
+        alert('저장 중 오류가 발생했습니다: ' + e.message);
+    }
+}
+
+async function updateCharacterList() {
+    const select = document.getElementById('saved-character-list');
+    select.innerHTML = '<option value="">-- 캐릭터 불러오기 --</option>';
+    let names = (await idbGetAllKeys()).filter(n => n !== AUTOSAVE_KEY);
+    names.sort((a, b) => a.localeCompare(b, 'ko-KR', { sensitivity: 'base' }));
+    names.forEach(n => {
+        const opt = document.createElement('option');
+        opt.value = n; opt.textContent = n;
+        select.appendChild(opt);
+    });
+}
+
+async function loadCharacter() {
+    const name = document.getElementById('saved-character-list').value;
+    if (!name) return;
+    const raw = await idbGet(name);
+    if (!raw) return;
+    userTouched = true;
+    await applySavedState(raw, false);
+    document.getElementById('character-name').value = name;
+    scheduleAutosave();
+    showToast(`'${name}' 데이터를 불러왔습니다.`);
+}
+
+async function applySavedState(raw, restoreName, abortIfTouched) {
+    let data;
+    try { data = JSON.parse(raw); } catch (e) { alert('데이터를 읽을 수 없습니다.'); return false; }
+    if (abortIfTouched && userTouched) return false;
+    restoring = true;
+    try {
+    const rebuilt = [];
+    for (const s of (data.slots || [])) {
+        const slot = { key: s.key, name: s.name, visible: s.visible !== false, blend: s.blend || 'normal', selected: null, parts: [] };
+        const idMap = {};
+        for (const p of (s.parts || [])) {
+            try {
+                const part = await buildPart(p.src, p.name, { x: p.x, y: p.y, scale: p.scale });
+                idMap[p.id] = part.id;
+                if (s.selected === p.id) slot.selected = part.id;
+                slot.parts.push(part);
+            } catch (e) { /* 손상된 파츠는 건너뜀 */ }
+        }
+        slot._idMap = idMap;
+        rebuilt.push(slot);
+    }
+    /* 기억해둔 조합의 파츠 번호를 새로 만들어진 번호로 갈아끼운다 */
+    const restoredPresets = (data.presets || []).map(pr => {
+        const sel = {};
+        rebuilt.forEach(s => {
+            const old = pr.sel ? pr.sel[s.key] : null;
+            sel[s.key] = (old && s._idMap && s._idMap[old]) ? s._idMap[old] : null;
+        });
+        return { name: pr.name, sel: sel };
+    });
+    rebuilt.forEach(s => { delete s._idMap; });
+
+    /* 불러오는 사이에 사용자가 직접 파츠를 올렸다면 그쪽을 살린다 */
+    if (abortIfTouched && userTouched) return false;
+
+    slots = rebuilt.length ? rebuilt : makeDefaultSlots();
+    presets = restoredPresets;
+    if (restoreName && data.characterName) document.getElementById('character-name').value = data.characterName;
+    targetSlotKey = null;
+    renderSlots(); renderPresets(); drawStage(); syncEditBar();
+    return true;
+    } finally {
+        restoring = false;
+    }
+}
+
+async function openManageModal() {
+    const listDiv = document.getElementById('manage-list');
+    listDiv.innerHTML = '';
+    let names = (await idbGetAllKeys()).filter(n => n !== AUTOSAVE_KEY);
+    names.sort((a, b) => a.localeCompare(b, 'ko-KR', { sensitivity: 'base' }));
+    if (!names.length) {
+        listDiv.innerHTML = '<div style="color:var(--text-dim); text-align:center; padding:20px;">저장된 캐릭터가 없습니다.</div>';
+    } else {
+        names.forEach(name => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-color);';
+            const chk = document.createElement('input');
+            chk.type = 'checkbox'; chk.className = 'manage-chk'; chk.value = name;
+            chk.style.marginRight = '10px';
+            const label = document.createElement('span');
+            label.textContent = name;
+            label.style.cssText = 'color:var(--text-main); font-size:14px; flex:1; cursor:pointer;';
+            label.onclick = () => { chk.checked = !chk.checked; };
+            row.appendChild(chk); row.appendChild(label);
+            listDiv.appendChild(row);
+        });
+    }
+    document.getElementById('manage-select-all').checked = false;
+    document.getElementById('manage-modal').style.display = 'flex';
+}
+function toggleSelectAllManage(checked) {
+    document.querySelectorAll('#manage-list .manage-chk').forEach(c => c.checked = checked);
+}
+async function exportSelectedCharacters() {
+    const checked = document.querySelectorAll('#manage-list .manage-chk:checked');
+    if (!checked.length) return alert('백업할 캐릭터를 선택해주세요.');
+    const backup = {};
+    for (const c of checked) backup['char_' + c.value] = await idbGet(c.value);
+    downloadJSON(backup, `mixer_backup_${checked.length}EA.json`);
+    showToast(`${checked.length}개의 캐릭터를 백업했습니다.`);
+}
+async function deleteSelectedCharacters() {
+    const checked = document.querySelectorAll('#manage-list .manage-chk:checked');
+    if (!checked.length) return alert('삭제할 캐릭터를 선택해주세요.');
+    if (!confirm(`선택한 ${checked.length}개의 캐릭터를 정말 삭제하시겠습니까?\n(복구할 수 없으므로 미리 백업을 권장합니다)`)) return;
+    for (const c of checked) await idbDelete(c.value);
+    await updateCharacterList();
+    await updateStorageIndicator();
+    await openManageModal();
+    showToast('선택한 캐릭터를 삭제했습니다.');
+}
+async function exportDatabase() {
+    const keys = (await idbGetAllKeys()).filter(k => k !== AUTOSAVE_KEY);
+    if (!keys.length) return alert('내보낼 캐릭터 데이터가 없습니다.');
+    const backup = {};
+    for (const k of keys) backup['char_' + k] = await idbGet(k);
+    downloadJSON(backup, 'mixer_DB_backup.json');
+    showToast('전체 데이터를 내보냈습니다.');
+}
+function downloadJSON(obj, filename) {
+    const blob = new Blob([JSON.stringify(obj)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+function importDatabase(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async e => {
+        try {
+            const data = JSON.parse(e.target.result);
+            let count = 0;
+            for (const key in data) {
+                if (key.startsWith('char_')) { await idbSet(key.replace('char_', ''), data[key]); count++; }
+            }
+            if (count) {
+                await updateCharacterList(); await updateStorageIndicator();
+                showToast(`${count}개의 캐릭터를 복구했습니다.`);
+            } else alert('올바른 백업 파일 형식이 아닙니다.');
+        } catch (err) { alert('파일을 읽는 중 오류가 발생했습니다: ' + err.message); }
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function newCharacter() {
+    if (!confirm('현재 작업을 비우고 새로 만드시겠습니까? (저장되지 않은 정보는 유실됩니다)')) return;
+    slots = makeDefaultSlots();
+    presets = []; targetSlotKey = null; zoomLevel = null;
+    document.getElementById('character-name').value = '';
+    renderSlots(); renderPresets(); drawStage(); syncEditBar();
+    idbDelete(AUTOSAVE_KEY).catch(() => {});
+    setAutosaveNote('');
+    showToast('새 캔버스가 준비되었습니다.');
+}
+function resetAll() {
+    if (!confirm('전체 설정을 초기화하시겠습니까? 저장되지 않은 데이터는 삭제됩니다.')) return;
+    slots = makeDefaultSlots();
+    presets = []; targetSlotKey = null; zoomLevel = null; sizeMode = 'orig'; whiteBackground = false;
+    document.getElementById('character-name').value = '';
+    document.getElementById('file-name').value = '';
+    document.querySelectorAll('#size-options .opt-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+    document.getElementById('custom-size-row').style.display = 'none';
+    setBackground(false);
+    if (editMode) toggleEditMode();
+    renderSlots(); renderPresets(); drawStage();
+    idbDelete(AUTOSAVE_KEY).catch(() => {});
+    setAutosaveNote('');
+    showToast('앱이 초기화되었습니다.');
+}
+
+/* =========================================================
+   화면 설정
+========================================================= */
+function setScreenMode(mode, save = true) {
+    const body = document.body;
+    if (mode === 'light') {
+        body.classList.remove('dark-mode'); body.classList.add('light-mode');
+        document.getElementById('btn-light').classList.add('active');
+        document.getElementById('btn-dark').classList.remove('active');
+    } else {
+        body.classList.remove('light-mode'); body.classList.add('dark-mode');
+        document.getElementById('btn-dark').classList.add('active');
+        document.getElementById('btn-light').classList.remove('active');
+    }
+    if (save) localStorage.setItem('mixer_screen_mode', mode);
+}
+function setTheme(themeName, el, save = true) {
+    document.body.style.removeProperty('--accent');
+    document.body.style.removeProperty('--accent-rgb');
+    document.body.style.removeProperty('--accent-text');
+    document.body.classList.remove('theme-mono', 'theme-blue', 'theme-green', 'theme-purple', 'theme-red');
+    document.body.classList.add('theme-' + themeName);
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+    if (el) el.classList.add('active');
+    if (save) {
+        localStorage.setItem('mixer_theme_type', 'preset');
+        localStorage.setItem('mixer_theme_name', themeName);
+    }
+}
+/* 고른 색 위에 얹을 글자·아이콘 색을 밝기에 따라 흰색/검정으로 정한다 */
+function readableOn(hex) {
+    const toLinear = v => {
+        v = v / 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+    const r = toLinear(parseInt(hex.slice(1, 3), 16));
+    const g = toLinear(parseInt(hex.slice(3, 5), 16));
+    const b = toLinear(parseInt(hex.slice(5, 7), 16));
+    const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const onWhite = 1.05 / (L + 0.05);   /* 흰 글자를 얹었을 때의 대비 */
+    /* 흰 글자가 충분히 읽히면 흰색을, 색이 밝아 흐려지면 검은색을 쓴다 */
+    return onWhite >= 3 ? '#ffffff' : '#121212';
+}
+
+function setCustomTheme(hex, save = true) {
+    document.body.classList.remove('theme-mono', 'theme-blue', 'theme-green', 'theme-purple', 'theme-red');
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    document.body.style.setProperty('--accent', hex);
+    document.body.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
+    document.body.style.setProperty('--accent-text', readableOn(hex));
+    if (save) {
+        localStorage.setItem('mixer_theme_type', 'custom');
+        localStorage.setItem('mixer_theme_color', hex);
+    }
+}
+
+function showToast(msg) {
+    const box = document.getElementById('alert-box');
+    box.innerText = msg;
+    box.style.display = 'block';
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => { box.style.display = 'none'; }, 2000);
+}
+
+/* =========================================================
+   도움말
+========================================================= */
+const HELP_HTML = `
+<h3><i class="fa-solid fa-layer-group"></i> 슬롯에 파츠 등록하기</h3>
+<ul>
+    <li>슬롯의 <b>+</b> 를 누르거나, 슬롯 위로 이미지를 <b>끌어다 놓아</b> 파츠를 등록합니다. 여러 장을 한 번에 올릴 수 있습니다.</li>
+    <li>썸네일을 누르면 그 파츠가 캔버스에 올라가고, <b>선택된 것을 한 번 더 누르면 그 슬롯은 비워집니다.</b></li>
+    <li>목록에서 <b>아래쪽 슬롯이 위에 겹쳐집니다.</b> 왼쪽 손잡이를 끌어 순서를 바꾸고, 눈 아이콘으로 잠시 숨길 수 있습니다.</li>
+    <li>슬롯마다 <b>합성 방식</b>을 고를 수 있습니다. 그림자나 안색처럼 아래 그림에 물들이듯 얹어야 하는 파츠는 <b>곱하기</b>를, 빛 효과에는 <b>스크린</b>을 쓰면 됩니다. 저장 결과에도 그대로 반영됩니다.</li>
+    <li>눈 아이콘으로 꺼둔 슬롯은 <b>저장에 포함되지 않습니다.</b> 파츠를 골라둔 채로 꺼두면 저장 패널에 경고가 뜨고, 저장할 때 한 번 더 확인합니다.</li>
+    <li>필요하면 홍조·이펙트 같은 <b>슬롯을 직접 추가</b>할 수 있습니다.</li>
+</ul>
+
+<h3><i class="fa-solid fa-up-down-left-right"></i> 크기가 다른 파츠 맞추기</h3>
+<ul>
+    <li>캔버스 크기는 <b>선택된 베이스 이미지</b>를 그대로 따릅니다. 같은 크기의 파츠는 그 자리에 그대로 쌓입니다.</li>
+    <li>크기가 다른 파츠는 썸네일에 <b>[크기]</b> 표시가 붙고 일단 가운데에 놓입니다.</li>
+    <li><b>[위치 편집]</b>을 켜면 캔버스에서 파츠를 직접 끌어 옮길 수 있습니다. 투명한 부분은 통과하므로 아래에 있는 파츠도 쉽게 집을 수 있습니다.</li>
+    <li>방향키로 1px씩, Shift+방향키로 10px씩 움직입니다. 조정한 위치와 크기는 <b>파츠마다 따로 기억</b>합니다.</li>
+</ul>
+
+<h3><i class="fa-solid fa-download"></i> 저장 크기 고르기</h3>
+<ul>
+    <li>캔버스 미리보기는 화면을 덜 차지하도록 <b>원본의 절반</b>으로 표시됩니다. <b>저장 결과와는 무관</b>하니 신경 쓰지 않아도 됩니다. (+ − 버튼으로 잠시 확대해 볼 수 있고, ½ 버튼으로 되돌아옵니다.)</li>
+    <li>저장은 <b>원본 크기</b>가 기본입니다. <b>½ 축소 · 2× 확대 · 직접 입력</b> 중에서 고를 수 있습니다.</li>
+    <li>직접 입력은 비율 유지를 켜두면 가로만 넣어도 세로가 따라옵니다.</li>
+    <li>배경은 <b>투명</b>이 기본이며, 흰색으로 채워 내보낼 수도 있습니다.</li>
+</ul>
+
+<h3><i class="fa-solid fa-bookmark"></i> 조합 기억 &amp; 캐릭터 저장</h3>
+<ul>
+    <li>지금 조합에 이름을 붙여 <b>[기억]</b> 해두면 언제든 그 조합으로 되돌아갑니다. <b>[전부 저장]</b>으로 표정별 PNG를 한 번에 뽑을 수 있습니다.</li>
+    <li>작업 중인 내용은 <b>자동으로 저장</b>됩니다. 실수로 창을 닫거나 새로고침해도 파츠·위치·기억해둔 조합이 그대로 돌아옵니다.</li>
+    <li>캐릭터 이름을 적고 <b>[저장하기]</b>를 누르면 등록한 파츠와 위치가 브라우저(IndexedDB)에 저장되어, 새로고침해도 그대로 남습니다.</li>
+    <li>파츠 이미지는 원본 그대로 보관하므로 용량을 꽤 씁니다. 좌측 <b>용량 게이지</b>를 확인하고, 다 쓴 캐릭터는 <b>[일괄 관리]</b>에서 백업 후 삭제해 공간을 비우세요.</li>
+</ul>
+`;
+document.getElementById('help-body').innerHTML = HELP_HTML;
+document.getElementById('welcome-body').innerHTML = HELP_HTML;
+
+function openHelpModal() { document.getElementById('help-modal').style.display = 'flex'; }
+function closeHelpModal() { document.getElementById('help-modal').style.display = 'none'; }
+function closeWelcome() {
+    if (document.getElementById('hide-welcome').checked) localStorage.setItem('mixer_welcome_seen', '1');
+    document.getElementById('welcome-overlay').style.display = 'none';
+}
+
+/* =========================================================
+   시작
+========================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+    const savedMode = localStorage.getItem('mixer_screen_mode');
+    if (savedMode) setScreenMode(savedMode, false);
+
+    const themeType = localStorage.getItem('mixer_theme_type');
+    if (themeType === 'preset') {
+        const tName = localStorage.getItem('mixer_theme_name');
+        const dot = document.querySelector(`.theme-dot[data-theme="${tName}"]`);
+        if (dot) setTheme(tName, dot, false);
+    } else if (themeType === 'custom') {
+        const tColor = localStorage.getItem('mixer_theme_color');
+        if (tColor) { document.getElementById('custom-theme-color').value = tColor; setCustomTheme(tColor, false); }
+    }
+
+    if (localStorage.getItem('mixer_welcome_seen') === '1') {
+        document.getElementById('welcome-overlay').style.display = 'none';
+    }
+});
+
+slots = makeDefaultSlots();
+syncThumbZoomBtn();
+syncPresetZoomBtn();
+renderSlots();
+renderPresets();
+drawStage();
+(async function init() {
+    await restoreAutosave();
+    await updateCharacterList();
+    await updateStorageIndicator();
+})();
+</script>
+</body>
+</html>
