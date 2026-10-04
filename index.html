@@ -845,16 +845,11 @@ function buildPart(src, name, saved) {
 
 /* 투명한 여백을 뺀 실제 그림 영역. 썸네일을 그 부분만 확대해 보여주는 데 쓴다. */
 function contentBounds(hit, w, h) {
-    // 1. hit 캔버스가 없거나 실패했을 때 full 대신 null 반환
-    if (!hit) return null; 
-    
+    const full = { x: 0, y: 0, w: w, h: h };
+    if (!hit) return full;
     let data;
-    try { 
-        data = hit.ctx.getImageData(0, 0, hit.canvas.width, hit.canvas.height).data; 
-    } catch (e) { 
-        return null; // 2. 데이터를 읽지 못했을 때 full 대신 null 반환
-    }
-    
+    try { data = hit.ctx.getImageData(0, 0, hit.canvas.width, hit.canvas.height).data; }
+    catch (e) { return full; }
     let minX = hit.canvas.width, minY = hit.canvas.height, maxX = -1, maxY = -1;
     for (let y = 0; y < hit.canvas.height; y++) {
         for (let x = 0; x < hit.canvas.width; x++) {
@@ -866,17 +861,13 @@ function contentBounds(hit, w, h) {
             }
         }
     }
-    
-    // 3. 투명한 픽셀만 있는(빈 PNG) 경우 full 대신 null 반환
-    if (maxX < 0) return null; 
-    
+    if (maxX < 0) return full;
     const s = hit.scale;
     const pad = 2 / s;
     const bx = Math.max(0, minX / s - pad);
     const by = Math.max(0, minY / s - pad);
     const bw = Math.min(w - bx, (maxX - minX + 1) / s + pad * 2);
     const bh = Math.min(h - by, (maxY - minY + 1) / s + pad * 2);
-    
     return { x: bx, y: by, w: Math.max(1, bw), h: Math.max(1, bh) };
 }
 
